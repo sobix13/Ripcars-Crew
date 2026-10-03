@@ -1,0 +1,2 @@
+a31f18cd0ce330483f38322f72ce3e85fa49dc4604d50a83f77643a9ef6dc51a  ripcars-crew-1.0.0.tar.gz
+565a2280b70e69ed78b84bdd9fae5d08df71bb999752c76cbc9c50d5d05d63ba  ripcars-crew-1.0.0.zip
