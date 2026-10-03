@@ -1,0 +1,35 @@
+[Unit]
+Description=Ripcars Crew - Moderation and Support
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=ripcarscrew
+Group=ripcarscrew
+SupplementaryGroups=ripcars-bots
+WorkingDirectory=/opt/ripcars-crew/current
+EnvironmentFile=/etc/ripcars-crew.env
+ExecStartPre=/opt/ripcars-crew/current/.venv/bin/python scripts/preflight.py
+ExecStart=/opt/ripcars-crew/current/.venv/bin/python main.py
+Restart=on-failure
+RestartSec=5
+WatchdogSec=90
+TimeoutStartSec=180
+TimeoutStopSec=30
+NotifyAccess=main
+UMask=0007
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ripcars-crew /var/lib/ripcars-bots
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+LockPersonality=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

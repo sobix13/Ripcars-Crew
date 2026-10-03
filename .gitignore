@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.pytest_cache/
+data/
+backups/
+*.sqlite3*
+*.db*
+
+# Keep historical non-English guides outside this English repository.
+*_FA.md
