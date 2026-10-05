@@ -60,12 +60,13 @@ class Tickets:
             raise ValueError("This ticket topic is not accepting tickets.")
         if not 1 <= len(subject.strip()) <= 200 or not 1 <= len(details.strip()) <= 1800:
             raise ValueError("A short subject and details are required.")
-        async with self.bot.db.lease(guild.id, ttl=300):
+        async with self.bot.db.lease(guild.id, ttl=300) as token:
             await check_ticket_scope(self.bot, guild, cfg)
             await self.bot.db.cooldown(guild.id, user.id, "ticket-create", cfg["tickets"]["create_cooldown_seconds"])
             ticket_id, number = await self.bot.db.reserve_ticket(guild.id, user.id, topic, redact(subject), redact(details))
             channel = None
             try:
+                await self.bot.db.ensure_lease(guild.id,'server-setup',token)
                 channel = await guild.create_text_channel(f"ticket-{number:04d}", category=guild.get_channel(cfg["tickets"]["open_category"]),
                     overwrites=ticket_overwrites(guild, cfg, user), reason=f"Ripcars Crew ticket {ticket_id}")
                 await self.bot.db.execute("UPDATE tickets SET channel=? WHERE id=?", (channel.id, ticket_id))
@@ -98,7 +99,7 @@ class Tickets:
         return ticket["number"]
 
     async def transition(self, guild, channel, actor, close=True):
-        async with self.bot.db.lease(guild.id, ttl=300):
+        async with self.bot.db.lease(guild.id, ttl=300) as token:
             cfg, _ = await self.bot.db.settings(guild.id)
             await check_ticket_scope(self.bot, guild, cfg)
             ticket = await self.bot.db.ticket(guild.id, channel.id)
@@ -121,6 +122,7 @@ class Tickets:
                     user = next((target for target in channel.overwrites if target.id == ticket["user"]), None)
             category = guild.get_channel(cfg["tickets"]["closed_category" if close else "open_category"])
             try:
+                await self.bot.db.ensure_lease(guild.id,'server-setup',token)
                 # Never rename on close/reopen, and never sync category permissions onto the ticket.
                 await channel.edit(category=category, overwrites=ticket_overwrites(guild, cfg, user, close, channel.overwrites),
                                    sync_permissions=False, reason=f"Ripcars Crew ticket {ticket['id']} {'close' if close else 'reopen'}")
@@ -183,10 +185,11 @@ class Tickets:
         return outcomes or ["No incomplete tickets."]
 
     async def delete(self, guild, channel, actor):
-        async with self.bot.db.lease(guild.id, "ticket:" + str(channel.id)):
+        async with self.bot.db.lease(guild.id, "ticket:" + str(channel.id)) as token:
             ticket = await self.bot.db.ticket(guild.id, channel.id)
             if not ticket or ticket["status"] != "closed":
                 raise ValueError("Only a registered closed ticket can be deleted.")
+            await self.bot.db.ensure_lease(guild.id,'ticket:'+str(channel.id),token)
             await channel.delete(reason=f"Ripcars Crew: confirmed deletion of closed ticket {ticket['id']}")
             await self.bot.db.execute("UPDATE tickets SET status='deleted' WHERE id=?", (ticket["id"],))
             await self.bot.db.audit(guild.id, actor, "ticket_delete", str(ticket["id"]))

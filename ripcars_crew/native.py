@@ -32,7 +32,7 @@ class NativeRules:
     async def sync(self, guild, actor):
         if not guild.me.guild_permissions.manage_guild:
             raise ValueError("Native AutoMod sync requires Manage Server for the bot.")
-        async with self.bot.db.lease(guild.id):
+        async with self.bot.db.lease(guild.id) as token:
             cfg, _ = await self.bot.db.settings(guild.id)
             rows = await self.bot.db.query("SELECT * FROM native WHERE guild=?", (guild.id,))
             row = rows[0] if rows else None
@@ -63,6 +63,7 @@ class NativeRules:
                            actions=[discord.AutoModRuleAction(type=discord.AutoModRuleActionType.block_message, custom_message=cfg["texts"]["native_block"][:150])],
                            enabled=enabled, exempt_roles=[discord.Object(id=v) for v in roles],
                            exempt_channels=[discord.Object(id=v) for v in channels], reason="Ripcars Crew: confirmed native word sync")
+            await self.bot.db.ensure_lease(guild.id,'server-setup',token)
             if rule:
                 rule = await rule.edit(**options)
             else:

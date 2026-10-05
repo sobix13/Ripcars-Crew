@@ -6,6 +6,7 @@ import json
 import sqlite3
 import time
 import uuid
+import ripcars_coordination as protocol
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -58,7 +59,9 @@ class Store:
             self.conn.execute("PRAGMA foreign_keys=ON")
             self.conn.execute("PRAGMA busy_timeout=15000")
             self.conn.executescript(self.schema)
+            if self.schema==COORD_SCHEMA:protocol.initialize(self.conn,Conflict)
             self.conn.commit()
+            if self.schema==COORD_SCHEMA:protocol.shared_permissions(self.path)
         await asyncio.to_thread(init)
 
     async def run(self, fn):
@@ -142,28 +145,28 @@ class Database(Store):
         return {row["key"]: {**row, "baseline": json.loads(row["baseline"]), "desired": json.loads(row["desired"])} for row in rows}
 
     async def acquire(self, guild, key="server-setup", ttl=180):
-        now, token = time.time(), uuid.uuid4().hex
-        def claim(c):
-            row = c.execute("SELECT * FROM leases WHERE guild=? AND key=?", (guild, key)).fetchone()
-            if row and row["expires"] > now:
-                raise Conflict("Another bot or task holds this setup lock. Try again shortly.")
-            c.execute("INSERT INTO leases VALUES(?,?,?,?) ON CONFLICT(guild,key) DO UPDATE SET token=excluded.token,expires=excluded.expires", (guild, key, token, now + ttl))
-            return token
-        return await self.coord.run(claim)
+        return await self.coord.run(lambda c:protocol.claim(c,guild,key,ttl,error=Conflict))
 
     async def renew(self, guild, key, token, ttl=180):
-        now = time.time()
-        changed = await self.coord.execute("UPDATE leases SET expires=? WHERE guild=? AND key=? AND token=? AND expires>?", (now + ttl, guild, key, token, now))
-        if not changed:
-            raise Conflict("Setup lease expired. Retry after checking Health.")
+        await self.coord.run(lambda c:protocol.renew(c,guild,key,token,ttl,error=Conflict))
+
+    async def ensure_lease(self,guild,key,token):
+        await self.coord.run(lambda c:protocol.ensure(c,guild,key,token,error=Conflict))
 
     @asynccontextmanager
     async def lease(self, guild, key="server-setup", ttl=180):
         token = await self.acquire(guild, key, ttl)
+        async def keep_alive():
+            while True:
+                await asyncio.sleep(min(30,ttl/3))
+                await self.renew(guild,key,token,ttl)
+        task=asyncio.create_task(keep_alive())
         try:
             yield token
         finally:
-            await self.coord.execute("DELETE FROM leases WHERE guild=? AND key=? AND token=?", (guild, key, token))
+            task.cancel()
+            await asyncio.gather(task,return_exceptions=True)
+            await self.coord.run(lambda c:protocol.release(c,guild,key,token))
 
     async def case(self, guild, user, actor, action, reason, status="done", duration=0, source="manual", event_key=None):
         event_key = event_key or "manual:" + uuid.uuid4().hex

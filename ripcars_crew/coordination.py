@@ -24,6 +24,7 @@ async def import_gate(bot, guild, actor):
                           ("channel:closed_tickets", "tickets.closed_category")):
             row = resources.get(key)
             if row:
+                if row['state'] not in ('active','pinned','external'):raise ValueError('Gate resource needs review before import: '+key)
                 cfg = config.set_path(cfg, path, row["object_id"])
         mod = resources.get("role:moderator")
         if mod:
@@ -99,7 +100,7 @@ class TemporaryControls:
     async def slowmode(self, guild, channel, seconds, lifetime, actor):
         if not 0 <= seconds <= 21600 or not 30 <= lifetime <= 86400:
             raise ValueError("Channel slowmode: 0–21600 seconds; duration: 30–86400 seconds.")
-        async with self.bot.db.lease(guild.id):
+        async with self.bot.db.lease(guild.id) as token:
             if await self.bot.db.query("SELECT * FROM temporary WHERE guild=? AND channel=? AND kind='slowmode' AND state!='done'", (guild.id, channel.id)):
                 raise ValueError("This channel already has a temporary control or unresolved restoration.")
             resources = await self.bot.db.resources(guild.id)
@@ -112,6 +113,7 @@ class TemporaryControls:
                 await self.bot.db.coord.execute("UPDATE resources SET state='crew-temporary' WHERE guild=? AND key=?", (guild.id, row["key"]))
             await self.bot.db.execute("INSERT OR REPLACE INTO temporary VALUES(?,?,'slowmode',?,?,?,'pending')", (guild.id, channel.id, json.dumps(original), json.dumps({"delay": seconds}), time.time() + lifetime))
             try:
+                await self.bot.db.ensure_lease(guild.id,'server-setup',token)
                 await channel.edit(slowmode_delay=seconds, reason="Ripcars Crew: confirmed temporary channel slowmode")
             except Exception:
                 # Outcome may be ambiguous: never declare restored without checking Discord.
@@ -124,7 +126,7 @@ class TemporaryControls:
         due = await self.bot.db.query("SELECT * FROM temporary WHERE guild=? AND expires<=? AND state IN ('active','pending')", (guild.id, time.time()))
         for item in due:
             try:
-                async with self.bot.db.lease(guild.id):
+                async with self.bot.db.lease(guild.id) as token:
                     channel = guild.get_channel(item["channel"])
                     original, applied = json.loads(item["original"]), json.loads(item["applied"])
                     row = original["resource"]
@@ -137,6 +139,7 @@ class TemporaryControls:
                         await self.bot.reporter.log(guild, "Temporary control needs review", f"Channel {item['channel']}: an external edit or ownership change was preserved.")
                         continue
                     if channel.slowmode_delay == applied["delay"]:
+                        await self.bot.db.ensure_lease(guild.id,'server-setup',token)
                         await channel.edit(slowmode_delay=original["delay"], reason="Ripcars Crew: temporary slowmode expired")
                     if current:
                         await self.bot.db.coord.execute("UPDATE resources SET state=? WHERE guild=? AND key=?", (row["state"], guild.id, row["key"]))
