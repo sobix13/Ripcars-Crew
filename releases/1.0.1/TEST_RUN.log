@@ -1,0 +1,207 @@
+Preflight PASS: SDK, configuration, permission flags, command tree, SQLite, persistent views, shutdown.
+test_actual_bot_setup_hook_and_graceful_shutdown (tests.test_boot.BootTests.test_actual_bot_setup_hook_and_graceful_shutdown) ... ok
+test_global_sync_mocked_real_command_tree (tests.test_boot.BootTests.test_global_sync_mocked_real_command_tree) ... ok
+test_real_member_lock_reuses_live_lock (tests.test_boot.BootTests.test_real_member_lock_reuses_live_lock) ... ok
+test_bool_not_int (tests.test_config.ConfigTests.test_bool_not_int) ... ok
+test_defaults_are_independent (tests.test_config.ConfigTests.test_defaults_are_independent) ... ok
+test_defaults_validate (tests.test_config.ConfigTests.test_defaults_validate) ... ok
+test_domain_path_rejected (tests.test_config.ConfigTests.test_domain_path_rejected) ... ok
+test_duplicate_word_rejected (tests.test_config.ConfigTests.test_duplicate_word_rejected) ... ok
+test_duration (tests.test_config.ConfigTests.test_duration) ... ok
+test_https_only (tests.test_config.ConfigTests.test_https_only) ... ok
+test_invalid_color (tests.test_config.ConfigTests.test_invalid_color) ... ok
+test_native_cannot_bypass_observe (tests.test_config.ConfigTests.test_native_cannot_bypass_observe) ... ok
+test_parse_type (tests.test_config.ConfigTests.test_parse_type) ... ok
+test_regex_mode_rejected (tests.test_config.ConfigTests.test_regex_mode_rejected) ... ok
+test_roles_unique (tests.test_config.ConfigTests.test_roles_unique) ... ok
+test_safe_default_no_enforcement (tests.test_config.ConfigTests.test_safe_default_no_enforcement) ... ok
+test_set_path_does_not_mutate (tests.test_config.ConfigTests.test_set_path_does_not_mutate) ... ok
+test_timeout_limit (tests.test_config.ConfigTests.test_timeout_limit) ... ok
+test_topics_duplicate_key (tests.test_config.ConfigTests.test_topics_duplicate_key) ... ok
+test_unknown_key_rejected (tests.test_config.ConfigTests.test_unknown_key_rejected) ... ok
+test_url_credentials_rejected (tests.test_config.ConfigTests.test_url_credentials_rejected) ... ok
+test_duplicate_category_not_adopted_by_name (tests.test_coordination.CoordinationTests.test_duplicate_category_not_adopted_by_name) ... ok
+test_gate_ids_import_no_owner_mutation (tests.test_coordination.CoordinationTests.test_gate_ids_import_no_owner_mutation) ... ok
+test_manual_slowmode_preserved (tests.test_coordination.CoordinationTests.test_manual_slowmode_preserved) ... ok
+test_ownership_change_preserved (tests.test_coordination.CoordinationTests.test_ownership_change_preserved) ... ok
+test_slowmode_limit (tests.test_coordination.CoordinationTests.test_slowmode_limit) ... ok
+test_temporary_slowmode_pauses_gate_then_restores (tests.test_coordination.CoordinationTests.test_temporary_slowmode_pauses_gate_then_restores) ... ok
+test_temporary_survives_restart (tests.test_coordination.CoordinationTests.test_temporary_survives_restart) ... ok
+test_unknown_channel_not_touched (tests.test_coordination.CoordinationTests.test_unknown_channel_not_touched) ... ok
+test_allow_does_not_override_block (tests.test_detection.DetectionTests.test_allow_does_not_override_block) ... ok
+test_blocked_domain_subdomains (tests.test_detection.DetectionTests.test_blocked_domain_subdomains) ... ok
+test_burst_bounded (tests.test_detection.DetectionTests.test_burst_bounded) ... ok
+test_burst_flood (tests.test_detection.DetectionTests.test_burst_flood) ... ok
+test_caps_disabled_then_enabled (tests.test_detection.DetectionTests.test_caps_disabled_then_enabled) ... ok
+test_contains_explicit (tests.test_detection.DetectionTests.test_contains_explicit) ... ok
+test_disabled_filter (tests.test_detection.DetectionTests.test_disabled_filter) ... ok
+test_domain_allow_boundary (tests.test_detection.DetectionTests.test_domain_allow_boundary) ... ok
+test_duplicate_window (tests.test_detection.DetectionTests.test_duplicate_window) ... ok
+test_exact_word_no_innocent_substring (tests.test_detection.DetectionTests.test_exact_word_no_innocent_substring) ... ok
+test_executable_attachment (tests.test_detection.DetectionTests.test_executable_attachment) ... ok
+test_gift_with_link (tests.test_detection.DetectionTests.test_gift_with_link) ... ok
+test_gift_without_link (tests.test_detection.DetectionTests.test_gift_without_link) ... ok
+test_image_attachment_safe (tests.test_detection.DetectionTests.test_image_attachment_safe) ... ok
+test_invite_opt_in (tests.test_detection.DetectionTests.test_invite_opt_in) ... ok
+test_lookalike (tests.test_detection.DetectionTests.test_lookalike) ... ok
+test_masked_link_mismatch (tests.test_detection.DetectionTests.test_masked_link_mismatch) ... ok
+test_mentions (tests.test_detection.DetectionTests.test_mentions) ... ok
+test_newline_opt_in (tests.test_detection.DetectionTests.test_newline_opt_in) ... ok
+test_nfkc_and_zero_width (tests.test_detection.DetectionTests.test_nfkc_and_zero_width) ... ok
+test_official_safe (tests.test_detection.DetectionTests.test_official_safe) ... ok
+test_phrase_whitespace (tests.test_detection.DetectionTests.test_phrase_whitespace) ... ok
+test_plain_label_not_masked_false_positive (tests.test_detection.DetectionTests.test_plain_label_not_masked_false_positive) ... ok
+test_protected_name (tests.test_detection.DetectionTests.test_protected_name) ... ok
+test_redacts_secrets (tests.test_detection.DetectionTests.test_redacts_secrets) ... ok
+test_regex_is_not_executed (tests.test_detection.DetectionTests.test_regex_is_not_executed) ... ok
+test_secret_request (tests.test_detection.DetectionTests.test_secret_request) ... ok
+test_unicode_lookalike (tests.test_detection.DetectionTests.test_unicode_lookalike) ... ok
+test_url_credentials_real_destination (tests.test_detection.DetectionTests.test_url_credentials_real_destination) ... ok
+test_words_configured (tests.test_detection.DetectionTests.test_words_configured) ... ok
+test_actor_permission_not_just_role (tests.test_moderation.ModerationTests.test_actor_permission_not_just_role) ... ok
+test_admin_target_protected (tests.test_moderation.ModerationTests.test_admin_target_protected) ... ok
+test_alert_only_never_warns (tests.test_moderation.ModerationTests.test_alert_only_never_warns) ... ok
+test_ban_native_deletion_window (tests.test_moderation.ModerationTests.test_ban_native_deletion_window) ... ok
+test_channel_exempt (tests.test_moderation.ModerationTests.test_channel_exempt) ... ok
+test_disabled_guard (tests.test_moderation.ModerationTests.test_disabled_guard) ... ok
+test_edit_after_safe_message_detected (tests.test_moderation.ModerationTests.test_edit_after_safe_message_detected) ... ok
+test_manual_api_failure (tests.test_moderation.ModerationTests.test_manual_api_failure) ... ok
+test_manual_moderation_role_hierarchy (tests.test_moderation.ModerationTests.test_manual_moderation_role_hierarchy) ... ok
+test_member_only_cooldown (tests.test_moderation.ModerationTests.test_member_only_cooldown) ... ok
+test_missing_delete_permission_is_reported (tests.test_moderation.ModerationTests.test_missing_delete_permission_is_reported) ... RCC-261004-85539A51 automod deletion 403 Forbidden (error code: 0): Missing Permissions
+Traceback (most recent call last):
+  File "/workspace/scratch/babada26ba3f/ripcars-crew-github-upload-20261003/ripcars_crew/moderation.py", line 100, in process
+    await message.delete()
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+discord.errors.Forbidden: 403 Forbidden (error code: 0): Missing Permissions
+ok
+test_no_dm_failure_interrupt (tests.test_moderation.ModerationTests.test_no_dm_failure_interrupt) ... ok
+test_notice_rate_limit (tests.test_moderation.ModerationTests.test_notice_rate_limit) ... ok
+test_observe_never_sanctions (tests.test_moderation.ModerationTests.test_observe_never_sanctions) ... ok
+test_repeated_event_dedup (tests.test_moderation.ModerationTests.test_repeated_event_dedup) ... ok
+test_staff_exempt (tests.test_moderation.ModerationTests.test_staff_exempt) ... ok
+test_timeout_failure_not_recorded_success (tests.test_moderation.ModerationTests.test_timeout_failure_not_recorded_success) ... RCC-261004-C9E25722 automod timeout injected
+Traceback (most recent call last):
+  File "/workspace/scratch/babada26ba3f/ripcars-crew-github-upload-20261003/ripcars_crew/moderation.py", line 117, in process
+    await user.timeout(timedelta(seconds=guard["timeout_seconds"]), reason=f"Ripcars Crew case {timeout_id}")
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+RuntimeError: injected
+ok
+test_unknown_bot_not_auto_trusted_when_scan_enabled (tests.test_moderation.ModerationTests.test_unknown_bot_not_auto_trusted_when_scan_enabled) ... ok
+test_warning_delete_and_case (tests.test_moderation.ModerationTests.test_warning_delete_and_case) ... ok
+test_warning_escalation_no_ban (tests.test_moderation.ModerationTests.test_warning_escalation_no_ban) ... ok
+test_webhook_scan_does_not_try_member_timeout (tests.test_moderation.ModerationTests.test_webhook_scan_does_not_try_member_timeout) ... ok
+test_contains_and_exact_mapping (tests.test_native.NativeTests.test_contains_and_exact_mapping) ... ok
+test_disable_edits_only_own_rule (tests.test_native.NativeTests.test_disable_edits_only_own_rule) ... ok
+test_disabled_default_creates_nothing (tests.test_native.NativeTests.test_disabled_default_creates_nothing) ... ok
+test_foreign_creator_never_adopted (tests.test_native.NativeTests.test_foreign_creator_never_adopted) ... ok
+test_include_only_scope_not_silently_widened (tests.test_native.NativeTests.test_include_only_scope_not_silently_widened) ... ok
+test_manual_rule_edit_preserved (tests.test_native.NativeTests.test_manual_rule_edit_preserved) ... ok
+test_real_sdk_payload_and_single_owned_rule (tests.test_native.NativeTests.test_real_sdk_payload_and_single_owned_rule) ... ok
+test_snapshot_uses_real_sdk (tests.test_native.NativeTests.test_snapshot_uses_real_sdk) ... ok
+test_backup_consistent_retained_unique (tests.test_operations.OperationsTests.test_backup_consistent_retained_unique) ... ok
+test_doctor_blockers_actionable (tests.test_operations.OperationsTests.test_doctor_blockers_actionable) ... ok
+test_error_alert_rate_limited (tests.test_operations.OperationsTests.test_error_alert_rate_limited) ... RCC-261004-304C2040 same failure injected
+RuntimeError: injected
+RCC-261004-2AAF21CD same failure injected
+RuntimeError: injected
+RCC-261004-9ABF42D1 same failure injected
+RuntimeError: injected
+ok
+test_error_id_persisted_and_private_alert (tests.test_operations.OperationsTests.test_error_id_persisted_and_private_alert) ... RCC-261004-3B44BB40 injected test error
+RuntimeError: test error
+ok
+test_health_real_db_and_nan_latency (tests.test_operations.OperationsTests.test_health_real_db_and_nan_latency) ... ok
+test_no_backup_for_missing_database (tests.test_operations.OperationsTests.test_no_backup_for_missing_database) ... ok
+test_permissions_no_administrator (tests.test_operations.OperationsTests.test_permissions_no_administrator) ... ok
+test_privacy_check_claimable_role_cannot_read_log (tests.test_operations.OperationsTests.test_privacy_check_claimable_role_cannot_read_log) ... ok
+test_private_log_never_leaks_to_public (tests.test_operations.OperationsTests.test_private_log_never_leaks_to_public) ... ok
+test_context_menu_registered (tests.test_reviews.ReviewTests.test_context_menu_registered) ... ok
+test_filter_modal_updates_runtime (tests.test_reviews.ReviewTests.test_filter_modal_updates_runtime) ... ok
+test_member_report_hidden_channel_denied (tests.test_reviews.ReviewTests.test_member_report_hidden_channel_denied) ... ok
+test_member_report_no_punishment (tests.test_reviews.ReviewTests.test_member_report_no_punishment) ... ok
+test_member_report_rate_limit (tests.test_reviews.ReviewTests.test_member_report_rate_limit) ... ok
+test_moderator_cannot_review_or_revoke_admin_case (tests.test_reviews.ReviewTests.test_moderator_cannot_review_or_revoke_admin_case) ... ok
+test_review_control_accepts_manual_without_writing_channel (tests.test_reviews.ReviewTests.test_review_control_accepts_manual_without_writing_channel) ... ok
+test_unresolved_case_marked_reviewed_not_success (tests.test_reviews.ReviewTests.test_unresolved_case_marked_reviewed_not_success) ... ok
+test_activity_duplicate_and_opt_in_previews (tests.test_storage.StorageTests.test_activity_duplicate_and_opt_in_previews) ... ok
+test_atomic_ticket_reservation (tests.test_storage.StorageTests.test_atomic_ticket_reservation) ... ok
+test_cancelled_transaction_completes_before_next (tests.test_storage.StorageTests.test_cancelled_transaction_completes_before_next) ... ok
+test_cases_idempotent (tests.test_storage.StorageTests.test_cases_idempotent) ... ok
+test_cooldown_concurrent_and_restart (tests.test_storage.StorageTests.test_cooldown_concurrent_and_restart) ... ok
+test_expired_lease_and_token_ownership (tests.test_storage.StorageTests.test_expired_lease_and_token_ownership) ... ok
+test_heat_decay (tests.test_storage.StorageTests.test_heat_decay) ... ok
+test_history_bounded (tests.test_storage.StorageTests.test_history_bounded) ... ok
+test_invalid_save_does_not_change_config (tests.test_storage.StorageTests.test_invalid_save_does_not_change_config) ... ok
+test_operational_data_not_shared (tests.test_storage.StorageTests.test_operational_data_not_shared) ... ok
+test_resource_identity_unique (tests.test_storage.StorageTests.test_resource_identity_unique) ... ok
+test_retention_preserves_pending (tests.test_storage.StorageTests.test_retention_preserves_pending) ... ok
+test_revision_conflict (tests.test_storage.StorageTests.test_revision_conflict) ... ok
+test_separate_paths_required (tests.test_storage.StorageTests.test_separate_paths_required) ... ok
+test_settings_persist (tests.test_storage.StorageTests.test_settings_persist) ... ok
+test_shared_lease_contention (tests.test_storage.StorageTests.test_shared_lease_contention) ... ok
+test_sql_injection_is_data (tests.test_storage.StorageTests.test_sql_injection_is_data) ... ok
+test_transaction_rolls_back (tests.test_storage.StorageTests.test_transaction_rolls_back) ... ok
+test_warning_expiry (tests.test_storage.StorageTests.test_warning_expiry) ... ok
+test_warning_revocation_and_failed_exclusion (tests.test_storage.StorageTests.test_warning_revocation_and_failed_exclusion) ... ok
+test_changed_token_is_never_released (tests.test_suite_protocol.ProtocolTests.test_changed_token_is_never_released) ... ok
+test_claim_is_mirrored (tests.test_suite_protocol.ProtocolTests.test_claim_is_mirrored) ... ok
+test_different_guilds_are_independent (tests.test_suite_protocol.ProtocolTests.test_different_guilds_are_independent) ... ok
+test_different_resource_locks_are_independent (tests.test_suite_protocol.ProtocolTests.test_different_resource_locks_are_independent) ... ok
+test_duplicate_identity_is_rejected_across_kinds (tests.test_suite_protocol.ProtocolTests.test_duplicate_identity_is_rejected_across_kinds) ... ok
+test_ensure_checks_both_tables (tests.test_suite_protocol.ProtocolTests.test_ensure_checks_both_tables) ... ok
+test_expired_rows_can_be_replaced (tests.test_suite_protocol.ProtocolTests.test_expired_rows_can_be_replaced) ... ok
+test_expired_token_cannot_be_revived (tests.test_suite_protocol.ProtocolTests.test_expired_token_cannot_be_revived) ... ok
+test_future_protocol_is_not_downgraded (tests.test_suite_protocol.ProtocolTests.test_future_protocol_is_not_downgraded) ... ok
+test_inspector_does_not_create_missing_database (tests.test_suite_protocol.ProtocolTests.test_inspector_does_not_create_missing_database) ... ok
+test_inspector_is_read_only_and_hides_tokens (tests.test_suite_protocol.ProtocolTests.test_inspector_is_read_only_and_hides_tokens) ... ok
+test_inspector_reports_divergent_lock (tests.test_suite_protocol.ProtocolTests.test_inspector_reports_divergent_lock) ... ok
+test_inspector_reports_protected_resource (tests.test_suite_protocol.ProtocolTests.test_inspector_reports_protected_resource) ... ok
+test_invalid_duration_does_not_create_a_lock (tests.test_suite_protocol.ProtocolTests.test_invalid_duration_does_not_create_a_lock) ... ok
+test_legacy_gate_lease_blocks_new_controller (tests.test_suite_protocol.ProtocolTests.test_legacy_gate_lease_blocks_new_controller) ... ok
+test_legacy_raffle_lock_blocks_new_controller (tests.test_suite_protocol.ProtocolTests.test_legacy_raffle_lock_blocks_new_controller) ... ok
+test_protocol_version_and_both_legacy_tables (tests.test_suite_protocol.ProtocolTests.test_protocol_version_and_both_legacy_tables) ... ok
+test_release_removes_both_own_rows (tests.test_suite_protocol.ProtocolTests.test_release_removes_both_own_rows) ... ok
+test_renewal_keeps_both_rows_equal (tests.test_suite_protocol.ProtocolTests.test_renewal_keeps_both_rows_equal) ... ok
+test_shared_file_keeps_owner_and_group (tests.test_suite_protocol.ProtocolTests.test_shared_file_keeps_owner_and_group) ... ok
+test_wrong_release_preserves_both_holders (tests.test_suite_protocol.ProtocolTests.test_wrong_release_preserves_both_holders) ... ok
+test_auto_delete_off (tests.test_tickets.TicketTests.test_auto_delete_off) ... ok
+test_bad_private_category_blocks_ticket (tests.test_tickets.TicketTests.test_bad_private_category_blocks_ticket) ... ok
+test_claim_does_not_rename (tests.test_tickets.TicketTests.test_claim_does_not_rename) ... ok
+test_close_one_patch_without_rename (tests.test_tickets.TicketTests.test_close_one_patch_without_rename) ... ok
+test_concurrent_open_prevented (tests.test_tickets.TicketTests.test_concurrent_open_prevented) ... ok
+test_creation_api_failure_no_active_ticket (tests.test_tickets.TicketTests.test_creation_api_failure_no_active_ticket) ... ok
+test_db_failure_after_discord_transition_recoverable (tests.test_tickets.TicketTests.test_db_failure_after_discord_transition_recoverable) ... ok
+test_duplicate_ticket_prevented (tests.test_tickets.TicketTests.test_duplicate_ticket_prevented) ... ok
+test_failed_patch_does_not_claim_closed (tests.test_tickets.TicketTests.test_failed_patch_does_not_claim_closed) ... ok
+test_foreign_overwrite_preserved (tests.test_tickets.TicketTests.test_foreign_overwrite_preserved) ... ok
+test_gate_owner_requires_explicit_handoff (tests.test_tickets.TicketTests.test_gate_owner_requires_explicit_handoff) ... ok
+test_missing_channel_not_recreated (tests.test_tickets.TicketTests.test_missing_channel_not_recreated) ... ok
+test_missing_public_panel_requires_review (tests.test_tickets.TicketTests.test_missing_public_panel_requires_review) ... ok
+test_no_membership_no_ticket (tests.test_tickets.TicketTests.test_no_membership_no_ticket) ... ok
+test_only_closed_ticket_deletion (tests.test_tickets.TicketTests.test_only_closed_ticket_deletion) ... ok
+test_open_private_for_author_and_staff (tests.test_tickets.TicketTests.test_open_private_for_author_and_staff) ... ok
+test_publish_idempotent (tests.test_tickets.TicketTests.test_publish_idempotent) ... ok
+test_reopen_denied_when_new_open_ticket (tests.test_tickets.TicketTests.test_reopen_denied_when_new_open_ticket) ... ok
+test_reopen_one_patch_restore_author (tests.test_tickets.TicketTests.test_reopen_one_patch_restore_author) ... ok
+test_starter_failure_rolls_back_known_channel (tests.test_tickets.TicketTests.test_starter_failure_rolls_back_known_channel) ... ok
+test_transcript_bounded_redacts_no_download (tests.test_tickets.TicketTests.test_transcript_bounded_redacts_no_download) ... ok
+test_activation_blockers_details (tests.test_ui.UITests.test_activation_blockers_details) ... ok
+test_admin_separate_from_moderator (tests.test_ui.UITests.test_admin_separate_from_moderator) ... ok
+test_all_sections_serialize_within_discord_limits (tests.test_ui.UITests.test_all_sections_serialize_within_discord_limits) ... ok
+test_claim_controls_require_staff (tests.test_ui.UITests.test_claim_controls_require_staff) ... ok
+test_confirmation_only_once (tests.test_ui.UITests.test_confirmation_only_once) ... ok
+test_foreign_panel_owner_denied (tests.test_ui.UITests.test_foreign_panel_owner_denied) ... ok
+test_modal_stale_revision_rejected (tests.test_ui.UITests.test_modal_stale_revision_rejected) ... ok
+test_nonadmin_settings_submit_denied (tests.test_ui.UITests.test_nonadmin_settings_submit_denied) ... ok
+test_persistent_ticket_controls (tests.test_ui.UITests.test_persistent_ticket_controls) ... ok
+test_ticket_modal_end_to_end (tests.test_ui.UITests.test_ticket_modal_end_to_end) ... ok
+test_wizard_selection_is_not_reset (tests.test_ui.UITests.test_wizard_selection_is_not_reset) ... ok
+test_word_add_remove_inside_discord (tests.test_ui.UITests.test_word_add_remove_inside_discord) ... ok
+
+----------------------------------------------------------------------
+Ran 179 tests in 2.215s
+
+OK
