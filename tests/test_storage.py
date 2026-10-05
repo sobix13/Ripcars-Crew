@@ -43,6 +43,7 @@ class StorageTests(AsyncFixture, unittest.IsolatedAsyncioTestCase):
     async def test_expired_lease_and_token_ownership(self):
         token = await self.bot.db.acquire(101)
         await self.bot.db.coord.execute("UPDATE leases SET expires=0 WHERE guild=101")
+        await self.bot.db.coord.execute("UPDATE locks SET expires=0 WHERE guild=101")
         other = await self.bot.db.acquire(101)
         await self.bot.db.coord.execute("DELETE FROM leases WHERE guild=101 AND token=?", (token,))
         self.assertEqual((await self.bot.db.coord.query("SELECT token FROM leases WHERE guild=101"))[0]["token"], other)
