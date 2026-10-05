@@ -2,7 +2,7 @@
 
 This is a separate chat protection and ticket application. Ripcars Gate remains independent. No old project database or token is migrated. Code is installed under `/opt/ripcars-crew`; the process runs as restricted user `ripcarscrew`. Run installation commands with `sudo`.
 
-The main package is `ripcars-crew-1.0.0.tar.gz`. ZIP contains the same source for Windows inspection. Gate compatibility release `ripcars-gate-1.0.1.tar.gz` is separate. It only handles already-deleted message errors; the entry flow is unchanged.
+The main package is `ripcars-crew-1.0.1.tar.gz`. ZIP contains the same source for Windows inspection. Gate compatibility release `ripcars-gate-1.0.2.tar.gz` is separate. It fixes shared coordination and preserves the existing member entry flow. Use [SUITE_DEPLOYMENT.md](SUITE_DEPLOYMENT.md) for the four-bot maintenance/upgrade order.
 
 ## 1. Prepare the Discord application
 
@@ -34,8 +34,8 @@ PowerShell:
 ```powershell
 $RipcarsVps = Read-Host 'VPS IP or SSH host alias'
 Set-Location 'C:\Users\macbook\Desktop\files'
-Get-FileHash '.\ripcars-crew-1.0.0.tar.gz' -Algorithm SHA256
-scp '.\ripcars-crew-1.0.0.tar.gz' '.\ripcars-crew-1.0.0.zip' '.\RIPCARS_CREW_SHA256SUMS.txt' "memecult@${RipcarsVps}:/tmp/"
+Get-FileHash '.\ripcars-crew-1.0.1.tar.gz' -Algorithm SHA256
+scp '.\ripcars-crew-1.0.1.tar.gz' '.\ripcars-crew-1.0.1.zip' '.\RIPCARS_CREW_SHA256SUMS.txt' "memecult@${RipcarsVps}:/tmp/"
 ssh "memecult@${RipcarsVps}"
 ```
 
@@ -62,11 +62,11 @@ Crew requires Python 3.11 or newer. If your version is older, install a supporte
 
 ## 4. Install the Gate compatibility update separately
 
-If Gate is already installed, apply the separate compatibility update before enabling overlapping Crew protection. Download it from [Ripcars-Gate](https://github.com/sobix13/Ripcars-Gate/tree/main/releases/1.0.1), verify it using Gate's own checksum file, and upload the verified TAR to `/tmp` before these commands. Existing releases and settings remain available. Gate's installer stages its own code and environment without deleting member data, CAPTCHA state or answers. If Gate is already on 1.0.1, this update step is unnecessary.
+If Gate is already installed, apply the separate compatibility update before enabling overlapping Crew protection. Download it from [Ripcars-Gate](https://github.com/sobix13/Ripcars-Gate/tree/main/releases/1.0.2), verify it using Gate's own checksum file, and upload the verified TAR to `/tmp` before these commands. Existing releases and settings remain available. Gate's installer stages its own code and environment without deleting member data, CAPTCHA state or answers. If Gate is already on 1.0.2, this update step is unnecessary. Follow SUITE_DEPLOYMENT.md when upgrading multiple controllers together.
 
 ```bash
 RIPCARS_GATE_STAGE="$(mktemp -d /tmp/ripcars-gate-update.XXXXXX)"
-tar -xzf /tmp/ripcars-gate-1.0.1.tar.gz -C "$RIPCARS_GATE_STAGE"
+tar -xzf /tmp/ripcars-gate-1.0.2.tar.gz -C "$RIPCARS_GATE_STAGE"
 sudo bash "$RIPCARS_GATE_STAGE/ripcars-gate/scripts/install.sh" "$RIPCARS_GATE_STAGE/ripcars-gate"
 sudo systemctl restart ripcars-gate
 sudo systemctl status ripcars-gate --no-pager -l
@@ -79,7 +79,7 @@ For a first Gate installation, use its own deployment guide. Crew does not repla
 
 ```bash
 RIPCARS_CREW_STAGE="$(mktemp -d /tmp/ripcars-crew-install.XXXXXX)"
-tar -xzf /tmp/ripcars-crew-1.0.0.tar.gz -C "$RIPCARS_CREW_STAGE"
+tar -xzf /tmp/ripcars-crew-1.0.1.tar.gz -C "$RIPCARS_CREW_STAGE"
 sudo bash "$RIPCARS_CREW_STAGE/ripcars-crew/scripts/install.sh" "$RIPCARS_CREW_STAGE/ripcars-crew"
 ```
 
@@ -110,7 +110,7 @@ sudo systemctl status ripcars-crew --no-pager -l
 sudo journalctl -u ripcars-crew --since '5 minutes ago' --no-pager -l
 ```
 
-Wait for `online as` and version `1.0.0`. A running service does not enable tickets or protection. Both start disabled inside Discord.
+Wait for `online as` and version `1.0.1`. A running service does not enable tickets or protection. Both start disabled inside Discord.
 
 ## 6. Configure Discord and keep bot responsibilities separate
 

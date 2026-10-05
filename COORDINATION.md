@@ -1,6 +1,8 @@
 # Gate / Crew responsibility contract
 
-Both processes use the exact same `resources`, `integrations`, and `leases` schema in `/var/lib/ripcars-bots/coordination.sqlite3`. Member profiles/answers remain private to Gate, and cases/tickets remain private to Crew. Neither process reads the other's token or operational database.
+All four processes use `/var/lib/ripcars-bots/coordination.sqlite3`. Protocol 2 mirrors `leases(guild,key,token,expires)` and `locks(guild,name,token,expires)` in the same transaction, correcting the earlier Gate/Crew versus Raffle/Verifier lock mismatch. Member profiles/answers remain private to Gate, and cases/tickets remain private to Crew. Neither process reads the other's token or operational database.
+
+All repositories ship identical `ripcars_coordination.py`; object IDs are unique per guild. Existing duplicate bindings block startup for explicit review and are never silently removed. Crew leases renew during long work and are checked before ticket/slowmode/native-rule mutations. Protected Gate records cannot be imported as an active setup. See [SUITE_DEPLOYMENT.md](SUITE_DEPLOYMENT.md) for versions, rollout and the shared read-only checker.
 
 | Responsibility | Controller |
 | --- | --- |

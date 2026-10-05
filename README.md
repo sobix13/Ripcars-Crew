@@ -1,7 +1,7 @@
-# Ripcars Crew 1.0.0
+# Ripcars Crew 1.0.1
 ## Repository files and installation packages
 
-This repository contains the complete 1.0.0 source, tests, dependency files, installation/rollback scripts, systemd service, settings examples and English operational documentation.
+This repository contains the complete 1.0.1 source, tests, dependency files, installation/rollback scripts, systemd service, settings examples and English operational documentation.
 
 | File or directory | Purpose |
 | --- | --- |
@@ -16,9 +16,11 @@ This repository contains the complete 1.0.0 source, tests, dependency files, ins
 | [scripts/rollback.sh](scripts/rollback.sh) | Code rollback |
 | [ripcars-crew.service](ripcars-crew.service) | Non-root systemd service |
 | [tests](tests) | Complete offline suite |
-| [releases/1.0.0](releases/1.0.0) | English TAR/ZIP packages, checksums and matching guides |
+| [releases/1.0.1](releases/1.0.1) | English TAR/ZIP packages, checksums and matching guides |
 
-The source and archives contain no credentials, member databases or virtual environments. Installation excludes Git metadata, previous packaged releases and runtime state. Discord runtime behavior is unchanged by this documentation publication.
+The source and archives contain no credentials, member databases or virtual environments. Installation excludes Git metadata, previous packaged releases and runtime state. Version 1.0.1 fixes shared coordination and renews/checks long setup leases; moderation and ticket policies are unchanged.
+
+See [SUITE_DEPLOYMENT.md](SUITE_DEPLOYMENT.md) and [SUITE_TEST_RESULTS.txt](SUITE_TEST_RESULTS.txt) for the compatible four-bot versions, rollout and multi-process test evidence. All four ship identical `ripcars_coordination.py`.
 
 ```bash
 git clone https://github.com/sobix13/Ripcars-Crew.git
@@ -65,7 +67,7 @@ Start with `/crew setup` or `/crew panel`. Configure valid moderator role IDs, m
 
 Publish the ticket panel before enabling tickets. Enable chat protection only after Doctor blockers are resolved. `observe` reports detections without deletion, warnings, or timeout; `protect` executes configured actions. Do not enable optional native blocking in observe mode. Native rule sync/disable is an explicit separate action; restoring settings or stopping the process does not undo a rule already stored in Discord.
 
-Install the supplied Gate 1.0.1 compatibility release before enabling overlapping chat enforcement. It ignores Discord NotFound only when another controller already deleted the same message; real permission failures still surface. Membership flow is unchanged. The Gate upgrade is explicitly separate from Crew installation.
+Install Gate 1.0.2 for the shared four-bot protocol. It also retains the safe Discord NotFound handling when another controller already deleted a message; real permission failures still surface. Membership flow is unchanged. Gate's upgrade remains separate from Crew installation. Follow the reviewed rollout in SUITE_DEPLOYMENT.md.
 
 ## Editing in Discord
 
