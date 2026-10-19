@@ -12,7 +12,7 @@ from discord.ext import commands
 
 from . import admin_ui, config, operations
 from .detection import redact
-from .ui_common import Confirm, can_target, embed, reply, require
+from .ui_common import Confirm, acknowledge, can_target, embed, reply, require
 
 
 def duration(value):
@@ -84,7 +84,7 @@ class CrewCommands(commands.Cog):
     @crew.command(name="health", description="Check database, Gateway, tasks, backups, and errors")
     async def health_command(self, i: discord.Interaction):
         if await require(self.bot, i):
-            await i.response.defer(ephemeral=True)
+            await acknowledge(i)
             await reply(i, embed=await operations.health(self.bot, i.guild))
 
     @crew.command(name="doctor", description="Report permissions, hierarchy, channel coverage, and setup blockers")
@@ -239,7 +239,7 @@ class CrewCommands(commands.Cog):
             return
         if file.size > 256000 or not file.filename.lower().endswith(".json"):
             raise ValueError("Upload a JSON settings file smaller than 256 KB.")
-        await i.response.defer(ephemeral=True)
+        await acknowledge(i)
         try:
             payload = json.loads(await file.read())
             cfg = payload.get("config", payload)
@@ -262,7 +262,7 @@ class CrewCommands(commands.Cog):
     async def transcript(self, i: discord.Interaction):
         if not await require(self.bot, i) or not await self.bot.db.ticket(i.guild_id, i.channel_id):
             return
-        await i.response.defer(ephemeral=True)
+        await acknowledge(i)
         cfg, _ = await self.bot.db.settings(i.guild_id)
         data = await self.bot.tickets.transcript(i.channel, cfg)
         await reply(i, file=discord.File(io.BytesIO(data), filename=f"ripcars-ticket-{i.channel_id}.txt"))

@@ -18,7 +18,7 @@ from .moderation import Moderation
 from .native import NativeRules
 from .storage import Conflict, Database
 from .tickets import Tickets
-from .ui_common import reply
+from .ui_common import acknowledge, reply
 
 
 class CrewBot(commands.Bot):
@@ -60,6 +60,7 @@ class CrewBot(commands.Bot):
         self.add_view(TicketPanel(self))
         self.add_view(TicketControls(self))
         self.tree.on_error = self.tree_error
+        self.tree.interaction_check = self.command_check
         if self.sync_enabled:
             guild_id = os.getenv("GUILD_ID", "").strip()
             if guild_id:
@@ -210,15 +211,48 @@ class CrewBot(commands.Bot):
                 await self.report(None, "backup", exc)
             await asyncio.sleep(86400)
 
+    def expired_interaction(self, i, error):
+        if not isinstance(error, discord.NotFound) or error.code != 10062:
+            return False
+        self.logger.warning(
+            "Interaction expired: command=%s age_seconds=%.3f gateway_seconds=%.3f",
+            getattr(i.command, "qualified_name", "unknown"),
+            (discord.utils.utcnow() - i.created_at).total_seconds(), self.latency,
+        )
+        return True
+
+    async def command_check(self, i):
+        # Modal openers must use their initial response to display the form.
+        if i.type != discord.InteractionType.application_command or i.command is None or i.command.qualified_name == "crew test-rule":
+            return True
+        started = time.monotonic()
+        try:
+            await acknowledge(i)
+        except Exception as error:
+            await self.tree_error(i, error)
+            return False
+        self.logger.info(
+            "Command acknowledged: command=%s age_seconds=%.3f ack_seconds=%.3f gateway_seconds=%.3f",
+            i.command.qualified_name, (discord.utils.utcnow() - i.created_at).total_seconds(),
+            time.monotonic() - started, self.latency,
+        )
+        return True
+
     async def tree_error(self, i, error):
         original = getattr(error, "original", error)
-        if isinstance(original, ValueError):
-            await reply(i, str(original)[:1800])
-        elif isinstance(error, discord.app_commands.CheckFailure):
-            await reply(i, "This command is unavailable to your role.")
-        else:
-            error_id = await self.report(i.guild, "command", original)
-            await reply(i, f"Something went wrong. Error ID: {error_id}. Use /crew health.")
+        if self.expired_interaction(i, original):
+            return
+        try:
+            if isinstance(original, ValueError):
+                await reply(i, str(original)[:1800])
+            elif isinstance(error, discord.app_commands.CheckFailure):
+                await reply(i, "This command is unavailable to your role.")
+            else:
+                error_id = await self.report(i.guild, "command", original)
+                await reply(i, f"Something went wrong. Error ID: {error_id}. Use /crew health.")
+        except discord.NotFound as reply_error:
+            if not self.expired_interaction(i, reply_error):
+                raise
 
     async def on_error(self, event, *args, **kwargs):
         exc = sys.exc_info()[1]
