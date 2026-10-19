@@ -10,6 +10,26 @@ class CoordinationTests(AsyncFixture, unittest.IsolatedAsyncioTestCase):
         snapshot = json.dumps({"slowmode": 0})
         await self.bot.db.coord.execute("INSERT INTO resources VALUES(101,'channel:general',305,'text','ripcars-gate',?,?,'active')", (snapshot, snapshot))
 
+    async def test_new_binding_during_temporary_control_is_preserved(self):
+        await self.bot.controls.slowmode(self.guild, self.guild.general, 30, 60, 603)
+        await self.register_general()
+        before = await self.bot.db.resources(101)
+        self.guild.general.edit.reset_mock()
+        await self.bot.db.execute("UPDATE temporary SET expires=0")
+        await self.bot.controls.restore_due(self.guild)
+        self.guild.general.edit.assert_not_awaited()
+        self.assertEqual(await self.bot.db.resources(101), before)
+        self.assertEqual((await self.bot.db.query("SELECT state FROM temporary"))[0]["state"], "review")
+
+    async def test_changed_owner_state_is_not_rewritten(self):
+        await self.register_general()
+        await self.bot.controls.slowmode(self.guild, self.guild.general, 30, 60, 603)
+        await self.bot.db.coord.execute("UPDATE resources SET owner='bot:900' WHERE guild=101")
+        before = await self.bot.db.resources(101)
+        await self.bot.db.execute("UPDATE temporary SET expires=0")
+        await self.bot.controls.restore_due(self.guild)
+        self.assertEqual(await self.bot.db.resources(101), before)
+
     async def test_gate_ids_import_no_owner_mutation(self):
         await self.register_general()
         await self.bot.db.coord.execute("INSERT INTO resources VALUES(101,'role:rippers',201,'role','ripcars-gate','{}','{}','active')")
