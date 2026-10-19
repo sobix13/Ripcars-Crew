@@ -25,6 +25,7 @@ for CREW_SHARED in /var/lib/ripcars-bots/coordination.sqlite3-wal /var/lib/ripca
 done
 install -d -m 755 "$CREW_RELEASE"
 tar -C "$CREW_SOURCE" --exclude=.venv --exclude=.env --exclude=.git --exclude=releases --exclude=logs --exclude=__pycache__ --exclude=.pytest_cache --exclude=data --exclude=backups --exclude='*.sqlite3*' --exclude='*.db*' -cf - . | tar -C "$CREW_RELEASE" -xf -
+chmod 0755 "$CREW_RELEASE"
 python3 -m venv "$CREW_RELEASE/.venv"
 "$CREW_RELEASE/.venv/bin/python" -m pip install -r "$CREW_RELEASE/requirements-lock.txt"
 PYTHON_BIN="$CREW_RELEASE/.venv/bin/python" bash "$CREW_RELEASE/run_tests.sh"
