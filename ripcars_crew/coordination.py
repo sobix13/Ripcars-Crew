@@ -130,11 +130,12 @@ class TemporaryControls:
                     channel = guild.get_channel(item["channel"])
                     original, applied = json.loads(item["original"]), json.loads(item["applied"])
                     row = original["resource"]
-                    current = (await self.bot.db.resources(guild.id)).get(row["key"]) if row else None
-                    safe_registry = row is None or (current and current["state"] == "crew-temporary" and current["owner"] == row["owner"] and current["object_id"] == row["object_id"] and current["baseline"] == row["baseline"] and current["desired"] == row["desired"])
+                    resources = await self.bot.db.resources(guild.id)
+                    current = resources.get(row["key"]) if row else next((r for r in resources.values() if r["object_id"] == item["channel"]), None)
+                    safe_registry = (row is None and current is None) or (row is not None and current and current["state"] == "crew-temporary" and current["owner"] == row["owner"] and current["object_id"] == row["object_id"] and current["baseline"] == row["baseline"] and current["desired"] == row["desired"])
                     if not channel or channel.slowmode_delay not in (applied["delay"], original["delay"]) or not safe_registry:
                         await self.bot.db.execute("UPDATE temporary SET state='review' WHERE guild=? AND channel=? AND kind='slowmode'", (guild.id, item["channel"]))
-                        if current and current["state"] == "crew-temporary":
+                        if row and current and current["state"] == "crew-temporary" and current["owner"] == row["owner"] and current["object_id"] == row["object_id"]:
                             await self.bot.db.coord.execute("UPDATE resources SET state='manual' WHERE guild=? AND key=?", (guild.id, row["key"]))
                         await self.bot.reporter.log(guild, "Temporary control needs review", f"Channel {item['channel']}: an external edit or ownership change was preserved.")
                         continue
