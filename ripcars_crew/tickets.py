@@ -185,18 +185,18 @@ class Tickets:
         return outcomes or ["No incomplete tickets."]
 
     async def delete(self, guild, channel, actor):
-        async with self.bot.db.lease(guild.id, "ticket:" + str(channel.id)) as token:
+        async with self.bot.db.lease(guild.id, ttl=300) as token:
             ticket = await self.bot.db.ticket(guild.id, channel.id)
             if not ticket or ticket["status"] != "closed":
                 raise ValueError("Only a registered closed ticket can be deleted.")
-            await self.bot.db.ensure_lease(guild.id,'ticket:'+str(channel.id),token)
+            await self.bot.db.ensure_lease(guild.id,'server-setup',token)
             await channel.delete(reason=f"Ripcars Crew: confirmed deletion of closed ticket {ticket['id']}")
             await self.bot.db.execute("UPDATE tickets SET status='deleted' WHERE id=?", (ticket["id"],))
             await self.bot.db.audit(guild.id, actor, "ticket_delete", str(ticket["id"]))
 
     async def sweep(self, guild):
         cfg, _ = await self.bot.db.settings(guild.id)
-        if not cfg["tickets"]["auto_delete_days"]:
+        if not cfg['tickets']['enabled'] or not cfg["tickets"]["auto_delete_days"]:
             return
         for ticket in await self.bot.db.query("SELECT * FROM tickets WHERE guild=? AND status='closed' AND delete_at>0 AND delete_at<=?", (guild.id, time.time())):
             channel = guild.get_channel(ticket["channel"])

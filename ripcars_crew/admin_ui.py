@@ -42,11 +42,17 @@ GUIDE = (
 
 async def checked_save(bot, guild, cfg, revision, actor):
     config.validate(cfg)
+    previous,current=await bot.db.settings(guild.id)
+    if current!=revision:raise ValueError('Settings changed. Reopen this section and try again.')
+    if previous['guard']['enabled'] and not cfg['guard']['enabled']:
+        native=await bot.db.query('SELECT baseline FROM native WHERE guild=?',(guild.id,))
+        if any(json.loads(row['baseline']).get('enabled') for row in native):
+            raise ValueError('Open More settings > Native AutoMod, turn it off and Sync first. Discord still has an enabled native rule.')
     if cfg["guard"]["enabled"] or cfg["tickets"]["enabled"]:
         blockers, _ = await operations.doctor(bot, guild, cfg)
         if blockers:
             raise ValueError("Setup blockers:\n" + "\n".join(blockers))
-    if cfg["tickets"]["enabled"]:
+    if cfg["tickets"]["enabled"] and cfg['tickets']!=previous['tickets']:
         await coordination.check_ticket_scope(bot, guild, cfg)
         rows = await bot.db.query("SELECT * FROM panels WHERE guild=? AND key='tickets'", (guild.id,))
         if not rows:
@@ -114,7 +120,12 @@ class PathSelect(discord.ui.Select):
         cfg, revision = await self.view.bot.db.settings(i.guild_id)
         path = self.values[0]
         value = config.get_path(cfg, path)
-        if isinstance(value, list) and path != "tickets.categories":
+        if type(value) is bool:
+            await i.response.defer(ephemeral=True)
+            cfg=config.set_path(cfg,path,not value)
+            await checked_save(self.view.bot,i.guild,cfg,revision,i.user.id)
+            await reply(i,path.rsplit('.',1)[-1].replace('_',' ').title()+': '+('On' if not value else 'Off'))
+        elif isinstance(value, list) and path != "tickets.categories":
             await reply(i, f"{path}: {len(value)} entries.\n{json.dumps(value, ensure_ascii=False)[:1500]}", view=ListEditor(self.view.bot, i.user.id, cfg, revision, path))
         else:
             await i.response.send_modal(SettingModal(self.view.bot, i.user.id, cfg, revision, path))
@@ -172,12 +183,22 @@ class FilterModal(SafeModal):
 
 
 class BranchSelect(discord.ui.Select):
-    def __init__(self):
-        super().__init__(placeholder="Choose a section", options=[discord.SelectOption(label=label, value=key) for key, (label, _) in SECTIONS.items()])
+    def __init__(self,advanced=False):
+        options=[discord.SelectOption(label=label,value=key) for key,(label,_) in SECTIONS.items()] if advanced else [discord.SelectOption(label=label,value=key) for key,label in (('channels','Channel rules'),('features','Features on / off'),('tickets','Tickets'),('advanced','More settings'))]
+        super().__init__(placeholder="Choose a section", options=options)
 
     async def callback(self, i):
-        cfg, _ = await self.view.bot.db.settings(i.guild_id)
         section = self.values[0]
+        if section in ('advanced','channels','features'):await i.response.defer(ephemeral=True)
+        cfg, revision = await self.view.bot.db.settings(i.guild_id)
+        if section=='advanced':
+            return await reply(i,'Detailed controls. All existing capabilities remain available.',view=Hub(self.view.bot,i.user.id,advanced=True))
+        if section=='channels':
+            from .channel_ui import show
+            return await show(i,self.view.bot,cfg,revision)
+        if section=='features':
+            from .channel_ui import Features
+            return await reply(i,'Turn on only the features this server needs. Turning a feature off keeps its settings and data.',view=Features(self.view.bot,i.user.id,cfg,revision))
         await i.response.edit_message(embed=section_embed(cfg, section), view=Section(self.view.bot, i.user.id, section), content=None)
 
 
@@ -196,9 +217,9 @@ def section_embed(cfg, section):
 
 
 class Hub(SafeView):
-    def __init__(self, bot, owner):
+    def __init__(self, bot, owner,advanced=False):
         super().__init__(bot, owner=owner, admin=True)
-        self.add_item(BranchSelect())
+        self.add_item(BranchSelect(advanced))
 
     @discord.ui.button(label="Health", row=1)
     async def health(self, i, button):

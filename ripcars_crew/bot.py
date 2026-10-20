@@ -18,7 +18,7 @@ from .moderation import Moderation
 from .native import NativeRules
 from .storage import Conflict, Database
 from .tickets import Tickets
-from .ui_common import reply
+from .ui_common import acknowledge, reply
 
 
 class CrewBot(commands.Bot):
@@ -43,6 +43,7 @@ class CrewBot(commands.Bot):
         self.started = time.monotonic()
         self._member_locks = weakref.WeakValueDictionary()
         self._joins = {}
+        self._prune_after = {}
         self.sync_enabled = sync
 
     def member_lock(self, guild, user):
@@ -60,6 +61,7 @@ class CrewBot(commands.Bot):
         self.add_view(TicketPanel(self))
         self.add_view(TicketControls(self))
         self.tree.on_error = self.tree_error
+        self.tree.interaction_check = self.command_check
         if self.sync_enabled:
             guild_id = os.getenv("GUILD_ID", "").strip()
             if guild_id:
@@ -81,9 +83,11 @@ class CrewBot(commands.Bot):
         self.logger.info("online as %s; version %s; servers %s", self.user, self.version, len(self.guilds))
 
     async def on_message(self, message):
-        if message.guild and not message.author.bot:
-            await self.moderation.activity(message)
-        await self.moderation.process(message)
+        if not message.guild or message.author.id==self.user.id:return
+        cfg,_=await self.db.settings(message.guild.id)
+        if not message.author.bot:
+            await self.moderation.activity(message,cfg=cfg)
+        await self.moderation.process(message,cfg=cfg)
 
     async def on_message_edit(self, before, after):
         if before.content != after.content or before.attachments != after.attachments:
@@ -92,13 +96,16 @@ class CrewBot(commands.Bot):
     async def on_raw_message_edit(self, payload):
         if payload.cached_message or not payload.guild_id or "content" not in payload.data:
             return
+        cfg,_=await self.db.settings(payload.guild_id)
+        if not cfg['guard']['enabled'] or not any(v['enabled'] for v in cfg['guard']['filters'].values()):return
         channel = self.get_channel(payload.channel_id)
         if channel and hasattr(channel, "fetch_message"):
+            if not channel.permissions_for(channel.guild.me).view_channel:return
             try:
                 message = await channel.fetch_message(payload.message_id)
             except (discord.NotFound, discord.Forbidden):
                 return
-            await self.moderation.process(message, edited=True)
+            await self.moderation.process(message, edited=True,cfg=cfg)
 
     async def on_raw_message_delete(self, payload):
         if payload.guild_id:
@@ -137,7 +144,7 @@ class CrewBot(commands.Bot):
             await self.db.audit(guild.id, actor, area, detail)
 
     async def on_audit_log_entry_create(self, entry):
-        await self.audit_event(entry.guild, "discord_audit", getattr(entry, "user_id", None), f"action={entry.action}; target={getattr(entry.target, 'id', None)}")
+        await self.audit_event(entry.guild, "discord_audit", getattr(entry, "user_id", None), f"action={entry.action}; target={getattr(entry, '_target_id', None)}")
 
     async def on_guild_channel_delete(self, channel):
         await self.audit_event(channel.guild, "channel_deleted", None, f"channel={channel.id}; no auto recreation")
@@ -162,10 +169,13 @@ class CrewBot(commands.Bot):
 
     async def monitor_cycle(self, guild):
         cfg, _ = await self.db.settings(guild.id)
-        await self.db.prune(guild.id, cfg["monitoring"])
+        now=time.monotonic()
+        if now>=self._prune_after.get(guild.id,0):
+            await self.db.prune(guild.id,cfg['monitoring'])
+            self._prune_after[guild.id]=now+3600
         await self.controls.restore_due(guild)
-        await self.tickets.sweep(guild)
-        native = await self.db.query("SELECT * FROM native WHERE guild=? AND state='active'", (guild.id,))
+        if cfg['tickets']['enabled']:await self.tickets.sweep(guild)
+        native = await self.db.query("SELECT * FROM native WHERE guild=? AND state='active'", (guild.id,)) if cfg['native']['enabled'] else []
         if native:
             from .native import snapshot
             import json
@@ -210,15 +220,48 @@ class CrewBot(commands.Bot):
                 await self.report(None, "backup", exc)
             await asyncio.sleep(86400)
 
+    def expired_interaction(self, i, error):
+        if not isinstance(error, discord.NotFound) or error.code != 10062:
+            return False
+        self.logger.warning(
+            "Interaction expired: command=%s age_seconds=%.3f gateway_seconds=%.3f",
+            getattr(i.command, "qualified_name", "unknown"),
+            (discord.utils.utcnow() - i.created_at).total_seconds(), self.latency,
+        )
+        return True
+
+    async def command_check(self, i):
+        # Modal openers must use their initial response to display the form.
+        if i.type != discord.InteractionType.application_command or i.command is None or i.command.qualified_name == "crew test-rule":
+            return True
+        started = time.monotonic()
+        try:
+            await acknowledge(i)
+        except Exception as error:
+            await self.tree_error(i, error)
+            return False
+        self.logger.info(
+            "Command acknowledged: command=%s age_seconds=%.3f ack_seconds=%.3f gateway_seconds=%.3f",
+            i.command.qualified_name, (discord.utils.utcnow() - i.created_at).total_seconds(),
+            time.monotonic() - started, self.latency,
+        )
+        return True
+
     async def tree_error(self, i, error):
         original = getattr(error, "original", error)
-        if isinstance(original, ValueError):
-            await reply(i, str(original)[:1800])
-        elif isinstance(error, discord.app_commands.CheckFailure):
-            await reply(i, "This command is unavailable to your role.")
-        else:
-            error_id = await self.report(i.guild, "command", original)
-            await reply(i, f"Something went wrong. Error ID: {error_id}. Use /crew health.")
+        if self.expired_interaction(i, original):
+            return
+        try:
+            if isinstance(original, ValueError):
+                await reply(i, str(original)[:1800])
+            elif isinstance(error, discord.app_commands.CheckFailure):
+                await reply(i, "This command is unavailable to your role.")
+            else:
+                error_id = await self.report(i.guild, "command", original)
+                await reply(i, f"Something went wrong. Error ID: {error_id}. Use /crew health.")
+        except discord.NotFound as reply_error:
+            if not self.expired_interaction(i, reply_error):
+                raise
 
     async def on_error(self, event, *args, **kwargs):
         exc = sys.exc_info()[1]

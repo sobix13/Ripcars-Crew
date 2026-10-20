@@ -3,6 +3,11 @@ from __future__ import annotations
 import discord
 
 
+async def acknowledge(i):
+    if not i.response.is_done():
+        await i.response.defer(ephemeral=True, thinking=True)
+
+
 def embed(cfg, title, description=""):
     result = discord.Embed(title=title[:256], description=description[:4000] or None, color=int(cfg["color"][1:], 16))
     result.set_footer(text=cfg["bot_name"])

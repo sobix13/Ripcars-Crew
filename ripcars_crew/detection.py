@@ -63,21 +63,25 @@ class Hit:
 
 
 def inspect(text, guard, *, mentions=0, attachments=(), display_name="", is_staff=False):
+    on = lambda key: guard["filters"][key]["enabled"]
+    if not any(on(key) for key in guard["filters"] if key not in ("flood", "duplicate", "member_cooldown", "channel_content")):
+        return []
     normalized = normalize(text[:8000])
-    urls = hosts(normalized)
+    urls = hosts(normalized) if any(on(k) for k in ("blocked_domain", "lookalike", "masked_link", "gift_scam", "invite")) else []
     hits = []
     def hit(key, reason):
         if guard["filters"][key]["enabled"] and not any(item.rule == key for item in hits):
             hits.append(Hit(key, reason))
-    for word in guard["words"]:
+    for word in guard["words"] if on("words") else ():
         if matches_word(normalized, word):
             hit("words", "Configured word rule matched")
             break
     for raw, host, credentials in urls:
-        if within(host, guard["blocked_domains"]):
+        if on("blocked_domain") and within(host, guard["blocked_domains"]):
             hit("blocked_domain", "Configured blocked domain")
         if within(host, guard["allowed_domains"]):
             continue
+        if not on("lookalike"): continue
         if credentials:
             hit("lookalike", "URL contains user-info that can hide its real destination")
         try:
@@ -92,30 +96,44 @@ def inspect(text, guard, *, mentions=0, attachments=(), display_name="", is_staf
             similar = any(len(label) >= max(4, len(stem) - 2) and SequenceMatcher(None, label, stem).ratio() >= 0.8 for label in labels)
             if official in skeleton or similar or stem in skeleton:
                 hit("lookalike", "Possible official-domain lookalike; moderator review required")
-    for label, destination in MASKED.findall(normalized):
+    for label, destination in MASKED.findall(normalized) if on("masked_link") else ():
         shown, target = hosts(label), hosts(destination)
         if shown and target and shown[0][1] != target[0][1]:
             hit("masked_link", "Displayed link domain differs from destination")
-    if re.search(r"\b(?:send|share|enter|provide|verify|paste)\b.{0,100}\b(?:seed phrase|recovery phrase|private key|password)\b", normalized):
+    if on("secret_request") and re.search(r"\b(?:send|share|enter|provide|verify|paste)\b.{0,100}\b(?:seed phrase|recovery phrase|private key|password)\b", normalized):
         hit("secret_request", "Possible request for account or wallet secrets")
-    if urls and re.search(r"\b(?:free|claim|gift|giveaway)\b.{0,70}\b(?:nitro|airdrop|reward|gift)\b", normalized):
+    if on("gift_scam") and urls and re.search(r"\b(?:free|claim|gift|giveaway)\b.{0,70}\b(?:nitro|airdrop|reward|gift)\b", normalized):
         hit("gift_scam", "Possible gift/reward lure with a link; review required")
-    if any(host in ("discord.gg", "discord.com") and (host == "discord.gg" or "/invite/" in raw) for raw, host, _ in urls):
+    if on("invite") and any(host in ("discord.gg", "discord.com") and (host == "discord.gg" or "/invite/" in raw) for raw, host, _ in urls):
         hit("invite", "Discord invite link")
-    extensions = {v.lower().lstrip(".") for v in guard["blocked_extensions"]}
-    if any(str(getattr(a, "filename", a)).lower().rsplit(".", 1)[-1] in extensions for a in attachments):
+    extensions = {v.lower().lstrip(".") for v in guard["blocked_extensions"]} if on("attachment") else set()
+    if extensions and any(str(getattr(a, "filename", a)).lower().rsplit(".", 1)[-1] in extensions for a in attachments):
         hit("attachment", "Blocked executable/script attachment extension")
-    if mentions >= guard["mention_limit"] or "@everyone" in normalized or "@here" in normalized:
+    if on("mentions") and (mentions >= guard["mention_limit"] or "@everyone" in normalized or "@here" in normalized):
         hit("mentions", "Mass mentions")
-    letters = [char for char in text[:8000] if char.isalpha()]
+    letters = [char for char in text[:8000] if char.isalpha()] if on("caps") else []
     if len(letters) >= guard["caps_min_letters"] and sum(c.isupper() for c in letters) / len(letters) >= guard["caps_ratio"]:
         hit("caps", "Excessive capital letters")
-    if text.count("\n") >= guard["newline_limit"]:
+    if on("newlines") and text.count("\n") >= guard["newline_limit"]:
         hit("newlines", "Excessive line breaks")
-    name = normalize(display_name).translate(CONFUSABLES)
-    if not is_staff and name in {normalize(v).translate(CONFUSABLES) for v in guard["protected_names"]}:
+    name = normalize(display_name).translate(CONFUSABLES) if on("impersonation") else ""
+    if on("impersonation") and not is_staff and name in {normalize(v).translate(CONFUSABLES) for v in guard["protected_names"]}:
         hit("impersonation", "Display name matches a protected staff name; review required")
     return hits
+
+
+def content_hits(message, policy):
+    if not policy or all(policy.values()): return []
+    blocked=[]
+    text=message.content
+    if not policy['text'] and text.strip(): blocked.append('text')
+    if not policy['links'] and hosts(text): blocked.append('links')
+    if not policy['mentions'] and (message.mentions or message.role_mentions or '@everyone' in text or '@here' in text): blocked.append('mentions')
+    for attachment in message.attachments:
+        mime=(getattr(attachment,'content_type',None) or '').lower()
+        kind='images' if mime.startswith('image/') else 'videos' if mime.startswith('video/') else 'files'
+        if not policy[kind] and kind not in blocked: blocked.append(kind)
+    return [Hit('channel_content','Not allowed in this channel: '+', '.join(blocked))] if blocked else []
 
 
 class BurstTracker:

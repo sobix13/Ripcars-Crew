@@ -122,7 +122,7 @@ class Database(Store):
                 cfg = config.defaults()
                 c.execute("INSERT INTO crew_settings VALUES(?,1,?,?)", (guild, json.dumps(cfg), time.time()))
                 return cfg, 1
-            return json.loads(row["body"]), row["revision"]
+            return config.upgrade(json.loads(row["body"])), row["revision"]
         return await self.run(get)
 
     async def save(self, guild, cfg, revision, actor):

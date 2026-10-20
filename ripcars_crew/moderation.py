@@ -6,7 +6,8 @@ from datetime import timedelta
 
 import discord
 
-from .detection import BurstTracker, Hit, inspect, redact
+from .detection import BurstTracker, Hit, inspect, redact, content_hits
+from .config import channel_policy
 from .ui_common import can_target
 
 
@@ -53,11 +54,11 @@ class Moderation:
         except discord.HTTPException:
             pass
 
-    async def process(self, message, *, edited=False):
+    async def process(self, message, *, edited=False, cfg=None):
         if not message.guild or message.author.id == self.bot.user.id:
             return []
         guild, user = message.guild, message.author
-        cfg, _ = await self.bot.db.settings(guild.id)
+        if cfg is None:cfg, _ = await self.bot.db.settings(guild.id)
         guard = cfg["guard"]
         if not guard["enabled"]:
             return []
@@ -78,11 +79,15 @@ class Moderation:
             channels.add(getattr(parent, "category_id", 0))
         if channels & set(guard["exempt_channels"]) or (guard["include_channels"] and not channels & set(guard["include_channels"])):
             return []
+        if not channel.permissions_for(guild.me).view_channel or not channel.permissions_for(guild.me).manage_messages:
+            return []
         async with self.bot.member_lock(guild.id, user.id):
             hits = inspect(message.content, guard, mentions=len(message.mentions) + len(message.role_mentions), attachments=message.attachments, display_name=user.display_name, is_staff=staff)
-            if not edited and not webhook and not user.bot:
+            if guard['filters']['channel_content']['enabled']:
+                hits.extend(content_hits(message,channel_policy(cfg,channel)))
+            if not edited and not webhook and not user.bot and any(guard['filters'][k]['enabled'] for k in ('flood','duplicate')):
                 hits.extend(self.burst.record(guild.id, user.id, message.content, guard))
-            rows = await self.bot.db.query("SELECT * FROM cooldowns WHERE guild=? AND user=? AND key=?", (guild.id, user.id, f"chat:{channel.id}"))
+            rows = await self.bot.db.query("SELECT * FROM cooldowns WHERE guild=? AND user=? AND key=?", (guild.id, user.id, f"chat:{channel.id}")) if guard['filters']['member_cooldown']['enabled'] else []
             if rows and rows[0]["at"] + rows[0]["delay"] > time.time() and guard["filters"]["member_cooldown"]["enabled"]:
                 hits.append(Hit("member_cooldown", "Member-specific chat cooldown"))
             if not hits:
@@ -135,8 +140,9 @@ class Moderation:
             await self.bot.reporter.log(guild, "Chat moderation", f"Case #{case_id} · {action} · member {user.id} · channel {channel.id}\n{reason}\nResult: {', '.join(results) or 'review only'}")
             return hits
 
-    async def activity(self, message):
+    async def activity(self, message, *, cfg=None):
         if not message.guild or message.author.bot:
             return
-        cfg, _ = await self.bot.db.settings(message.guild.id)
+        if cfg is None:cfg, _ = await self.bot.db.settings(message.guild.id)
+        if not cfg['monitoring'].get('activity_enabled',True):return
         await self.bot.db.activity_message(message.guild.id, message.author.id, message.channel.id, message.id, redact(message.content), cfg["monitoring"])
