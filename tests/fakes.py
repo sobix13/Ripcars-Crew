@@ -41,6 +41,8 @@ class Member:
 
 class Channel:
     @property
+    def mention(self):return f'<#{self.id}>'
+    @property
     def overwrites(self):
         return self._test_overwrites
 

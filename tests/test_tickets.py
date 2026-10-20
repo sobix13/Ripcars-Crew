@@ -12,6 +12,16 @@ class TicketTests(AsyncFixture, unittest.IsolatedAsyncioTestCase):
     async def open_ticket(self):
         return await self.bot.tickets.open(self.guild, self.guild.user, "packs", "Pack issue", "A pack needs a check")
 
+    async def test_delete_uses_the_same_mutex_as_reopen(self):
+        from ripcars_crew.storage import Conflict
+        channel = await self.open_ticket()
+        await self.bot.tickets.transition(self.guild, channel, self.guild.staff)
+        async with self.bot.db.lease(self.guild.id):
+            with self.assertRaises(Conflict):
+                await self.bot.tickets.delete(self.guild, channel, self.guild.staff)
+        channel.delete.assert_not_awaited()
+        self.assertEqual((await self.bot.db.ticket(self.guild.id, channel.id))["status"], "closed")
+
     async def test_open_private_for_author_and_staff(self):
         channel = await self.open_ticket()
         other = Member(701, self.guild, [self.guild.rippers])
