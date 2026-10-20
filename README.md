@@ -1,3 +1,7 @@
+# Ripcars Crew 1.1.0
+
+See [Quiet launch setup](QUIET_LAUNCH.md) for the current four-section panel, per-channel content buttons and feature switches. The sections below retain the full operations reference.
+
 # Ripcars Crew 1.0.1
 ## Repository files and installation packages
 
@@ -94,3 +98,5 @@ See `COORDINATION.md`, `REVIEW.md`, `RESEARCH.md`, and `ACCEPTANCE.md`.
 See `TEST_RESULTS.txt` and `VALIDATION.json` for the measured result. Live Discord acceptance and the production VPS service check remain pending; no token or SSH connection was used here.
 
 Build new English packages with `python3 scripts/build_release.py /tmp/ripcars-crew-release-output`. The output directory must be outside this checkout and must not contain archives with the same version.
+
+Quiet launch setup: [QUIET_LAUNCH.md](QUIET_LAUNCH.md).
